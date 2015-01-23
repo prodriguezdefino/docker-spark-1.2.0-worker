@@ -1,14 +1,15 @@
-## Apache Spark Master Node
+## Apache Spark Worker Node
 #
 FROM prodriguezdefino/spark-1.2.0-base:latest
 MAINTAINER prodriguezdefino prodriguezdefino@gmail.com
 
-# Expose TCP ports 7077 8080
-EXPOSE 7077 8080
+# Instead of using a random port, bind the worker to a specific port
+ENV SPARK_WORKER_PORT 8888
+EXPOSE 8888
 
-RUN mkdir $SPARK_HOME/spark_master_files
-ADD files $SPARK_HOME/spark_master_files
-RUN chmod 755 $SPARK_HOME/spark_master_files/run_master_node.sh
+RUN mkdir $SPARK_HOME/spark_worker_files
+ADD files $SPARK_HOME/spark_worker_files
+RUN chmod 755 $SPARK_HOME/spark_worker_files/run_worker_node.sh
 
 RUN rm -rf $SPARK_HOME/work
 RUN mkdir -p $SPARK_HOME/work
@@ -28,4 +29,4 @@ RUN mkdir -p $SPARK_HOME/logs
 ## deploy the master files
 RUN cp /tmp/spark-files/log4j.properties $SPARK_HOME/conf/
 
-CMD ["/usr/local/spark/spark_master_files/run_master_node.sh"]
+CMD ["/usr/local/spark/spark_master_files/run_worker_node.sh", "master"]
