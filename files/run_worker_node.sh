@@ -20,39 +20,49 @@ echo " "
 echo "WORKER_IP=$IP"
 echo " "
 
+#set listener for sigterm an other signals in order to de-register from master node.
+function cleanup {
+	echo "cleaning stuff..."
+	/etc/remote-remove-slave.sh $MASTER_NODE $IP
+	echo "done!"
+}
+trap cleanup SIGTERM TERM 15
+
+## configure the hadoop and spark installations
 echo " "
 echo "Preparing Apache Spark..."
 echo " "
-## configure the hadoop and spark installations
 sed s/HOSTNAME/$MASTER_NODE/ $HADOOP_PREFIX/etc/hadoop/core-site.xml.template > $HADOOP_PREFIX/etc/hadoop/core-site.xml
-sed -i s/__MASTER__/$MASTER_NODE/ /tmp/spark-files/spark-env.sh.template > $SPARK_HOME/conf/spark-env.sh
+sed "s/__MASTER__/$MASTER_NODE/;s/__HOSTNAME__/$HOSTNAME/;s/__LOCAL_IP__/$IP/" /tmp/spark-files/spark-env.sh.template > $SPARK_HOME/conf/spark-env.sh
+sed s/HOSTNAME/$MASTER_NODE/ $SPARK_HOME/yarn-remote-client/core-site.xml.template > $SPARK_HOME/yarn-remote-client/core-site.xml
+sed s/HOSTNAME/$MASTER_NODE/ $SPARK_HOME/yarn-remote-client/yarn-site.xml.template > $SPARK_HOME/yarn-remote-client/yarn-site.xml
 
 echo " "
 echo "Adding itself as a slave in Hadoop..."
 echo " "
-/etc/remote-add-slave.sh $MASTER_NODE $IP
+/etc/remote-add-slave.sh $MASTER_NODE $IP $HOSTNAME
 
 echo " "
 echo "Starting ssh service..."
 echo " "
 service ssh start
-sleep 2
 
 echo " "
 echo "Starting Hadoop Datanode..."
 echo " "
 $HADOOP_PREFIX/sbin/hadoop-daemon.sh --config $HADOOP_CONF_DIR --script hdfs start datanode
+sleep 5
 
 echo " "
 echo "Starting Spark Worker..."
 echo " "
-. $SPARK_HOME/bin/conf/spark-env.sh
-$SPARK_HOME/bin/spark-class org.apache.spark.deploy.worker.Worker $MASTER_NODE
+. $SPARK_HOME/conf/spark-env.sh
+$SPARK_HOME/bin/spark-class org.apache.spark.deploy.worker.Worker $MASTER &
 
-if [[ $1 == "-d" ]]; then
-  while true; do sleep 1000; done
+if [[ $2 == "-d" ]]; then
+	wait
 fi
 
-if [[ $1 == "-bash" ]]; then
+if [[ $2 == "-bash" ]]; then
   /bin/bash
 fi
