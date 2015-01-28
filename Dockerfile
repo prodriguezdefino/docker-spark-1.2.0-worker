@@ -17,6 +17,9 @@ RUN mkdir -p $SPARK_HOME/work
 RUN rm -rf /tmp/spark
 RUN mkdir /tmp/spark
 #RUN chown hdfs.hdfs /tmp/spark
+RUN rm -rf /tmp/hadoop-root
+RUN mkdir /tmp/hadoop-root
+#RUN chown hdfs.hdfs /tmp/hadoop-root
 
 ## this one is for Spark shell logging
 RUN rm -rf /var/lib/hadoop/hdfs
@@ -29,4 +32,4 @@ RUN mkdir -p $SPARK_HOME/logs
 ## deploy the master files
 RUN cp /tmp/spark-files/log4j.properties $SPARK_HOME/conf/
 
-CMD ["/usr/local/spark/spark_master_files/run_worker_node.sh", "master"]
+CMD ["/usr/local/spark/spark_worker_files/run_worker_node.sh", "master", "-d"]
