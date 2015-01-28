@@ -32,4 +32,4 @@ RUN mkdir -p $SPARK_HOME/logs
 ## deploy the master files
 RUN cp /tmp/spark-files/log4j.properties $SPARK_HOME/conf/
 
-CMD ["/usr/local/spark/spark_worker_files/run_worker_node.sh", "master", "-d"]
+CMD ["/usr/local/spark/spark_worker_files/run_worker_node.sh", "master.sparkmaster.dev.docker", "-d"]
