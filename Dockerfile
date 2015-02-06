@@ -1,6 +1,6 @@
 ## Apache Spark Worker Node
 #
-FROM prodriguezdefino/sparkbase:1.2.0
+FROM prodriguezdefino/sparkbase
 MAINTAINER prodriguezdefino prodriguezdefino@gmail.com
 
 # Instead of using a random port, bind the worker to a specific port
